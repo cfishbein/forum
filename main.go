@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -9,17 +10,22 @@ import (
 
 func main() {
 	conf := loadConf()
+	log.Println("Loading database")
+	db := openDB(conf.DatabasePath)
+	defer db.Close()
 	router := gin.New()
 	router.GET("/users", listUsers)
 	router.Run(conf.Port)
 }
 
 type configuration struct {
-	Port string `json:"port"`
+	Port         string `json:"port"`
+	DatabasePath string `json:"databasePath"`
 }
 
 func loadConf() configuration {
-	file, err := os.Open("conf.json")
+	// TODO conf should really be from an environment variable
+	file, err := os.Open(os.Args[1])
 	if err != nil {
 		panic(err)
 	}
