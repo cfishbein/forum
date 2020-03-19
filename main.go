@@ -5,16 +5,19 @@ import (
 	"log"
 	"os"
 
+	"github.com/cfishbein/forum/internal/db"
+	"github.com/cfishbein/forum/internal/routes"
+
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	conf := loadConf()
 	log.Println("Loading database")
-	db := openDB(conf.DatabasePath)
+	db := db.OpenDB(conf.DatabasePath)
 	defer db.Close()
 	router := gin.New()
-	router.GET("/users", listUsers)
+	router.GET("/users", routes.ListUsers)
 	router.Run(conf.Port)
 }
 
