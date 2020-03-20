@@ -1,7 +1,7 @@
 /* Create forum database tables */
 CREATE TABLE user (
     id INTEGER PRIMARY KEY,
-    name CHAR(25)
+    name CHAR(25) UNIQUE
 );
 
 CREATE TABLE topic (
