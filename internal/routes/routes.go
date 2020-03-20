@@ -7,11 +7,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var users [2]db.User = [2]db.User{db.User{ID: 1, Name: "user1"}, db.User{ID: 2, Name: "user2"}}
+// InsertUser attempts to insert a new User
+func InsertUser(c *gin.Context) {
+	name := c.PostForm("name")
+	user := db.User{Name: name}
+	err := db.InsertUser(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	} else {
+		c.JSON(http.StatusCreated, gin.H{})
+	}
+}
 
 // ListUsers lists all users
 func ListUsers(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"users": users,
-	})
+	users, err := db.ListUsers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"users": users,
+		})
+	}
 }

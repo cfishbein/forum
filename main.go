@@ -14,10 +14,11 @@ import (
 func main() {
 	conf := loadConf()
 	log.Println("Loading database")
-	db := db.OpenDB(conf.DatabasePath)
+	db.InitDB(conf.DatabasePath)
 	defer db.Close()
 	router := gin.New()
 	router.GET("/users", routes.ListUsers)
+	router.POST("/users/insert", routes.InsertUser)
 	router.Run(conf.Port)
 }
 
