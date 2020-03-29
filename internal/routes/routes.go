@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/cfishbein/forum/internal/db"
 	"github.com/gin-gonic/gin"
@@ -27,6 +28,23 @@ func ListUsers(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{
 			"users": users,
+		})
+	}
+}
+
+// GetPosts gets all posts for a topic ID in the path param
+func GetPosts(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error:": "Invalid post ID"})
+		return
+	}
+	posts, err := db.GetPosts(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"posts": posts,
 		})
 	}
 }

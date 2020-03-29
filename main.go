@@ -19,6 +19,7 @@ func main() {
 	router := gin.New()
 	router.GET("/users", routes.ListUsers)
 	router.POST("/users/insert", routes.InsertUser)
+	router.GET("/topic/:id/posts", routes.GetPosts)
 	router.Run(conf.Port)
 }
 

@@ -41,6 +41,7 @@ type User struct {
 
 // Topic is a forum topic
 type Topic struct {
+	ID     int    `json:"id"`
 	Title  string `json:"title"`
 	Author User   `json:"author"`
 	Posts  []Post `json:"posts"`
@@ -48,6 +49,7 @@ type Topic struct {
 
 // Post is a post within a topic
 type Post struct {
+	ID      int    `json:"id"`
 	Author  User   `json:"author"`
 	Content string `json:"content"`
 }
@@ -90,4 +92,29 @@ func ListUsers() ([]User, error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+// GetPosts get all posts for the given Topic ID
+func GetPosts(id int) ([]Post, error) {
+	rows, err := db.Query("SELECT p.id as id, a.id as author_id, a.name, p.content FROM post p, user a WHERE topic_id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	posts := make([]Post, 0)
+	for rows.Next() {
+		var postID int
+		var authorID int
+		var name string
+		var content string
+
+		err = rows.Scan(&postID, &authorID, &name, &content)
+		if err != nil {
+			return nil, err
+		}
+		author := User{ID: authorID, Name: name}
+		post := Post{ID: postID, Author: author, Content: content}
+		posts = append(posts, post)
+	}
+	return posts, nil
 }
