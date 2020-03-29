@@ -13,7 +13,9 @@ CREATE TABLE topic (
 
 CREATE TABLE post (
     id INTEGER PRIMARY KEY,
+    topic_id INTEGER,
     author_id INTEGER,
     content TEXT,
+    FOREIGN KEY(topic_id) REFERENCES topic(id),
     FOREIGN KEY(author_id) REFERENCES user(id)
 );
