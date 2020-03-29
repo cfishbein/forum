@@ -17,8 +17,8 @@ func main() {
 	db.InitDB(conf.DatabasePath)
 	defer db.Close()
 	router := gin.New()
+	router.POST("/user", routes.AddUser)
 	router.GET("/users", routes.ListUsers)
-	router.POST("/users/insert", routes.InsertUser)
 	router.GET("/topic/:id/posts", routes.GetPosts)
 	router.Run(conf.Port)
 }

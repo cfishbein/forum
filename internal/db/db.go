@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"os"
 
+	"github.com/cfishbein/forum/internal/model"
 	_ "github.com/mattn/go-sqlite3" // TODO check how to import (example used this)
 )
 
@@ -33,54 +34,23 @@ func Close() {
 	db.Close()
 }
 
-// User is a user account
-type User struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-// Topic is a forum topic
-type Topic struct {
-	ID     int    `json:"id"`
-	Title  string `json:"title"`
-	Author User   `json:"author"`
-	Posts  []Post `json:"posts"`
-}
-
-// Post is a post within a topic
-type Post struct {
-	ID      int    `json:"id"`
-	Author  User   `json:"author"`
-	Content string `json:"content"`
-}
-
-// InsertUser inserts the given user to the database
-func InsertUser(u User) error {
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	stmt, err := tx.Prepare("INSERT INTO user(name) VALUES(?)")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(u.Name)
-	if err != nil {
-		return err
-	}
-	tx.Commit()
-	return nil
+// AddUser adds the given user to the database
+func AddUser(u model.User) error {
+	err := exec("INSERT INTO user(name) VALUES(?)", func(stmt *sql.Stmt) error {
+		_, e := stmt.Exec(u.Name)
+		return e
+	})
+	return err
 }
 
 // ListUsers lists all users in the database
-func ListUsers() ([]User, error) {
+func ListUsers() ([]model.User, error) {
 	rows, err := db.Query("SELECT id, name FROM user")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	users := make([]User, 0)
+	users := make([]model.User, 0)
 	for rows.Next() {
 		var id int
 		var name string
@@ -88,20 +58,29 @@ func ListUsers() ([]User, error) {
 		if err != nil {
 			return nil, err
 		}
-		user := User{ID: id, Name: name}
+		user := model.User{ID: id, Name: name}
 		users = append(users, user)
 	}
 	return users, nil
 }
 
+// AddPost adds the given Post to the database
+func AddPost(topicID int, p model.Post) error {
+	err := exec("INSERT INTO post(topic_id, author_id, content) VALUES(?, ?, ?)", func(stmt *sql.Stmt) error {
+		_, e := stmt.Exec(topicID, p.Author.ID, p.Content)
+		return e
+	})
+	return err
+}
+
 // GetPosts get all posts for the given Topic ID
-func GetPosts(id int) ([]Post, error) {
+func GetPosts(id int) ([]model.Post, error) {
 	rows, err := db.Query("SELECT p.id as id, a.id as author_id, a.name, p.content FROM post p, user a WHERE topic_id = ?", id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	posts := make([]Post, 0)
+	posts := make([]model.Post, 0)
 	for rows.Next() {
 		var postID int
 		var authorID int
@@ -112,9 +91,28 @@ func GetPosts(id int) ([]Post, error) {
 		if err != nil {
 			return nil, err
 		}
-		author := User{ID: authorID, Name: name}
-		post := Post{ID: postID, Author: author, Content: content}
+		author := model.User{ID: authorID, Name: name}
+		post := model.Post{ID: postID, Author: author, Content: content}
 		posts = append(posts, post)
 	}
 	return posts, nil
+}
+
+// exec convenience function to execute the given SQL string and uses the given fn to set execution parameters
+func exec(sql string, fn func(*sql.Stmt) error) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	stmt, err := tx.Prepare(sql)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	err = fn(stmt)
+	if err != nil {
+		return err
+	}
+	tx.Commit()
+	return nil
 }

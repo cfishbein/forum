@@ -5,14 +5,15 @@ import (
 	"strconv"
 
 	"github.com/cfishbein/forum/internal/db"
+	"github.com/cfishbein/forum/internal/model"
 	"github.com/gin-gonic/gin"
 )
 
-// InsertUser attempts to insert a new User
-func InsertUser(c *gin.Context) {
+// AddUser attempts to add a new User
+func AddUser(c *gin.Context) {
 	name := c.PostForm("name")
-	user := db.User{Name: name}
-	err := db.InsertUser(user)
+	user := model.User{Name: name}
+	err := db.AddUser(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	} else {
