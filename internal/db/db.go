@@ -43,6 +43,23 @@ func AddUser(u model.User) error {
 	return err
 }
 
+// GetUser gets a user with the given ID
+func GetUser(id int) (*model.User, error) {
+	rows, err := db.Query("SELECT name FROM user WHERE id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	rows.Next()
+	var name string
+	err = rows.Scan(&name)
+	if err != nil {
+		return nil, err
+	}
+	user := &model.User{ID: id, Name: name}
+	return user, nil
+}
+
 // ListUsers lists all users in the database
 func ListUsers() ([]model.User, error) {
 	rows, err := db.Query("SELECT id, name FROM user")

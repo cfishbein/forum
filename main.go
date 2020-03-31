@@ -18,8 +18,10 @@ func main() {
 	defer db.Close()
 	router := gin.New()
 	router.POST("/user", routes.AddUser)
+	router.GET("/user/:id", routes.GetUser)
 	router.GET("/users", routes.ListUsers)
 	router.GET("/topic/:id/posts", routes.GetPosts)
+	router.POST("/topic/:id/post", routes.AddPost)
 	router.Run(conf.Port)
 }
 
