@@ -81,6 +81,20 @@ func ListUsers() ([]model.User, error) {
 	return users, nil
 }
 
+// AddTopic adds a new Topic, setting the topic ID of t
+func AddTopic(t *model.Topic) error {
+	err := exec("INSERT INTO topic(title, author_id)", func(stmt *sql.Stmt) error {
+		result, e := stmt.Exec(t.Title, t.Author.ID)
+		if e != nil {
+			return e
+		}
+		id, e := result.LastInsertId()
+		t.ID = int(id)
+		return e
+	})
+	return err
+}
+
 // AddPost adds the given Post to the database
 func AddPost(topicID int, p model.Post) error {
 	err := exec("INSERT INTO post(topic_id, author_id, content) VALUES(?, ?, ?)", func(stmt *sql.Stmt) error {
