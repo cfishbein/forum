@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -15,7 +16,7 @@ func AddUser(c *gin.Context) {
 	user := model.User{Name: name}
 	err := db.AddUser(user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		serverError(c, err.Error())
 	} else {
 		c.JSON(http.StatusCreated, gin.H{})
 	}
@@ -25,12 +26,12 @@ func AddUser(c *gin.Context) {
 func GetUser(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error:": "Invalid user ID"})
+		invalidRequest(c, "Invalid User ID")
 		return
 	}
 	user, err := db.GetUser(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
+		serverError(c, "User not found")
 	} else {
 		c.JSON(http.StatusOK, gin.H{"user": user})
 	}
@@ -40,7 +41,7 @@ func GetUser(c *gin.Context) {
 func ListUsers(c *gin.Context) {
 	users, err := db.ListUsers()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		serverError(c, err.Error())
 	} else {
 		c.JSON(http.StatusOK, gin.H{
 			"users": users,
@@ -53,34 +54,34 @@ func AddTopic(c *gin.Context) {
 	// Add the Topic
 	userID, err := strconv.Atoi(c.Param("user_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		invalidRequest(c, "Invalid User ID")
 	}
 	author, err := db.GetUser(userID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
+		invalidRequest(c, "User not found")
 	}
 
 	title := c.Param("title")
 	topic, err := model.NewTopic(title, *author)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		invalidRequest(c, err.Error())
 	}
 
 	err = db.AddTopic(topic)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to add new topic"})
+		serverError(c, err.Error())
 	}
 
 	// Add the Post
 	content := c.PostForm("content")
 	post, err := model.NewPost(content, *author)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		invalidRequest(c, err.Error())
 	}
 
 	err = db.AddPost(topic.ID, *post)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		serverError(c, err.Error())
 	}
 }
 
@@ -88,12 +89,12 @@ func AddTopic(c *gin.Context) {
 func GetPosts(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error:": "Invalid post ID"})
+		invalidRequest(c, "Invalid Post ID")
 		return
 	}
 	posts, err := db.GetPosts(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		serverError(c, err.Error())
 	} else {
 		c.JSON(http.StatusOK, gin.H{
 			"posts": posts,
@@ -105,30 +106,39 @@ func GetPosts(c *gin.Context) {
 func AddPost(c *gin.Context) {
 	topicID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid topic ID"})
+		invalidRequest(c, "Invalid Topic ID")
 		return
 	}
 	userID, err := strconv.Atoi(c.PostForm("userId"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid User ID"})
+		invalidRequest(c, "Invalid User ID")
 		return
 	}
 	content := c.PostForm("content")
 	author, err := db.GetUser(userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User ID not found"})
+		invalidRequest(c, "User ID not found")
 		return
 	}
 
 	// TODO FK's not being enforce in sqlite3, so topic ID isn't validated
 	post, err := model.NewPost(content, *author)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		invalidRequest(c, err.Error())
 	}
 	err = db.AddPost(topicID, *post)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		serverError(c, err.Error())
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{})
+}
+
+func invalidRequest(c *gin.Context, msg string) {
+	c.JSON(http.StatusNotFound, gin.H{"error": msg})
+}
+
+func serverError(c *gin.Context, msg string) {
+	log.Println(msg)
+	c.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong!"})
 }
