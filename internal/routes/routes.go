@@ -55,12 +55,17 @@ func AddTopic(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 	}
-	topic := new(model.Topic)
 	author, err := db.GetUser(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
 	}
-	topic.Author = *author
+
+	title := c.Param("title")
+	topic, err := model.NewTopic(title, *author)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
 	err = db.AddTopic(topic)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to add new topic"})
@@ -68,7 +73,7 @@ func AddTopic(c *gin.Context) {
 
 	// Add the Post
 	content := c.PostForm("content")
-	post, err := model.NewPost(*author, content)
+	post, err := model.NewPost(content, *author)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -116,7 +121,7 @@ func AddPost(c *gin.Context) {
 	}
 
 	// TODO FK's not being enforce in sqlite3, so topic ID isn't validated
-	post, err := model.NewPost(*author, content)
+	post, err := model.NewPost(content, *author)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
