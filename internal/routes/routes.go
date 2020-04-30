@@ -52,24 +52,28 @@ func ListUsers(c *gin.Context) {
 // AddTopic adds a new topic
 func AddTopic(c *gin.Context) {
 	// Add the Topic
-	userID, err := strconv.Atoi(c.Param("user_id"))
+	userID, err := strconv.Atoi(c.PostForm("userId"))
 	if err != nil {
 		invalidRequest(c, "Invalid User ID")
+		return
 	}
 	author, err := db.GetUser(userID)
 	if err != nil {
 		invalidRequest(c, "User not found")
+		return
 	}
 
-	title := c.Param("title")
+	title := c.PostForm("title")
 	topic, err := model.NewTopic(title, *author)
 	if err != nil {
 		invalidRequest(c, err.Error())
+		return
 	}
 
 	err = db.AddTopic(topic)
 	if err != nil {
 		serverError(c, err.Error())
+		return
 	}
 
 	// Add the Post
@@ -77,12 +81,16 @@ func AddTopic(c *gin.Context) {
 	post, err := model.NewPost(content, *author)
 	if err != nil {
 		invalidRequest(c, err.Error())
+		return
 	}
 
 	err = db.AddPost(topic.ID, *post)
 	if err != nil {
 		serverError(c, err.Error())
+		return
 	}
+
+	c.JSON(http.StatusCreated, gin.H{})
 }
 
 // GetPosts gets all posts for a topic ID in the path param
@@ -95,11 +103,11 @@ func GetPosts(c *gin.Context) {
 	posts, err := db.GetPosts(id)
 	if err != nil {
 		serverError(c, err.Error())
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"posts": posts,
-		})
+		return
 	}
+	c.JSON(http.StatusOK, gin.H{
+		"posts": posts,
+	})
 }
 
 // AddPost adds a post to the database

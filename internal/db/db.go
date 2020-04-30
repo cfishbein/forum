@@ -83,7 +83,7 @@ func ListUsers() ([]model.User, error) {
 
 // AddTopic adds a new Topic, setting the topic ID of t
 func AddTopic(t *model.Topic) error {
-	err := exec("INSERT INTO topic(title, author_id)", func(stmt *sql.Stmt) error {
+	err := exec("INSERT INTO topic(title, author_id) VALUES(?, ?)", func(stmt *sql.Stmt) error {
 		result, e := stmt.Exec(t.Title, t.Author.ID)
 		if e != nil {
 			return e
