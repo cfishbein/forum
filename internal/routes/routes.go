@@ -10,6 +10,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var categories []model.Category
+
+// RegisterCategories registers the DB stored list of categories to the router
+func RegisterCategories() {
+	cats, err := db.ListCategories()
+	if err != nil {
+		panic(err)
+	}
+	categories = cats
+}
+
 // AddUser attempts to add a new User
 func AddUser(c *gin.Context) {
 	name := c.PostForm("name")
@@ -51,6 +62,11 @@ func ListUsers(c *gin.Context) {
 
 // AddTopic adds a new topic
 func AddTopic(c *gin.Context) {
+	_, err := strconv.Atoi(c.Param("categoryId"))
+	if err != nil {
+		invalidRequest(c, "Invalid Category ID")
+		return
+	}
 	// Add the Topic
 	userID, err := strconv.Atoi(c.PostForm("userId"))
 	if err != nil {

@@ -16,13 +16,16 @@ func main() {
 	log.Println("Loading database")
 	db.InitDB(conf.DatabasePath)
 	defer db.Close()
+
+	routes.RegisterCategories()
+
 	router := gin.New()
 	router.POST("/user", routes.AddUser)
 	router.GET("/users", routes.ListUsers)
 	router.GET("/user/:id", routes.GetUser)
-	router.POST("/topic", routes.AddTopic)
-	router.POST("/topic/:id/post", routes.AddPost)
-	router.GET("/topic/:id/posts", routes.GetPosts)
+	router.POST("/category/:categoryId/topic", routes.AddTopic)
+	router.POST("/category/:categoryId/topic/:id/post", routes.AddPost)
+	router.GET("/category/:categoryId/topic/:id/posts", routes.GetPosts)
 	router.Run(conf.Port)
 }
 

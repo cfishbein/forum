@@ -34,6 +34,28 @@ func Close() {
 	db.Close()
 }
 
+// ListCategories lists all available Categories
+func ListCategories() ([]model.Category, error) {
+	rows, err := db.Query("SELECT id, name, desc FROM category")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	categories := make([]model.Category, 0)
+	for rows.Next() {
+		var id int
+		var name string
+		var desc string
+		err = rows.Scan(&id, &name, &desc)
+		if err != nil {
+			return nil, err
+		}
+		category := model.Category{ID: id, Name: name, Desc: desc}
+		categories = append(categories, category)
+	}
+	return categories, nil
+}
+
 // AddUser adds the given user to the database
 func AddUser(u model.User) error {
 	err := exec("INSERT INTO user(name) VALUES(?)", func(stmt *sql.Stmt) error {

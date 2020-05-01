@@ -11,6 +11,13 @@ type User struct {
 	Name string `json:"name"`
 }
 
+// Category is a forum category
+type Category struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Desc string `json:"desc"`
+}
+
 // Topic is a forum topic
 type Topic struct {
 	ID     int    `json:"id"`
