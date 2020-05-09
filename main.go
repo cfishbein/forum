@@ -20,12 +20,13 @@ func main() {
 	routes.RegisterCategories()
 
 	router := gin.New()
-	router.POST("/user", routes.AddUser)
-	router.GET("/users", routes.ListUsers)
-	router.GET("/user/:id", routes.GetUser)
-	router.POST("/category/:categoryId/topic", routes.AddTopic)
-	router.POST("/category/:categoryId/topic/:id/post", routes.AddPost)
-	router.GET("/category/:categoryId/topic/:id/posts", routes.GetPosts)
+	router.POST("/forum/user", routes.AddUser)
+	router.GET("/forum/users", routes.ListUsers)
+	router.GET("/forum/user/:userId", routes.GetUser)
+	router.GET("/forum/:categoryId/topic", routes.ListTopics)
+	router.POST("/forum/:categoryId/topic", routes.AddTopic)
+	router.POST("/forum/:categoryId/topic/:postId/post", routes.AddPost)
+	router.GET("/forum/:categoryId/topic/:postId/posts", routes.GetPosts)
 	router.Run(conf.Port)
 }
 

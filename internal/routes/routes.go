@@ -35,7 +35,7 @@ func AddUser(c *gin.Context) {
 
 // GetUser attempts to get an existing User
 func GetUser(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("userId"))
 	if err != nil {
 		invalidRequest(c, "Invalid User ID")
 		return
@@ -132,7 +132,7 @@ func ListTopics(c *gin.Context) {
 
 // GetPosts gets all posts for a topic ID in the path param
 func GetPosts(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("postId"))
 	if err != nil {
 		invalidRequest(c, "Invalid Post ID")
 		return
@@ -149,7 +149,7 @@ func GetPosts(c *gin.Context) {
 
 // AddPost adds a post to the database
 func AddPost(c *gin.Context) {
-	topicID, err := strconv.Atoi(c.Param("id"))
+	topicID, err := strconv.Atoi(c.Param("postId"))
 	if err != nil {
 		invalidRequest(c, "Invalid Topic ID")
 		return
