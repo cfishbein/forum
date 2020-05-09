@@ -103,10 +103,28 @@ func ListUsers() ([]model.User, error) {
 	return users, nil
 }
 
+// GetCategory gets the Category for the given ID
+func GetCategory(id int) (*model.Category, error) {
+	rows, err := db.Query("SELECT name, desc FROM category WHERE id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	rows.Next()
+	var name string
+	var desc string
+	err = rows.Scan(&name, &desc)
+	if err != nil {
+		return nil, err
+	}
+	category := &model.Category{ID: id, Name: name, Desc: desc}
+	return category, nil
+}
+
 // AddTopic adds a new Topic, setting the topic ID of t
-func AddTopic(t *model.Topic) error {
-	err := exec("INSERT INTO topic(title, author_id) VALUES(?, ?)", func(stmt *sql.Stmt) error {
-		result, e := stmt.Exec(t.Title, t.Author.ID)
+func AddTopic(c model.Category, t *model.Topic) error {
+	err := exec("INSERT INTO topic(title, author_id, category_id) VALUES(?, ?, ?)", func(stmt *sql.Stmt) error {
+		result, e := stmt.Exec(t.Title, t.Author.ID, c.ID)
 		if e != nil {
 			return e
 		}

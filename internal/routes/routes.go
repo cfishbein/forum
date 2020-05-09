@@ -62,12 +62,16 @@ func ListUsers(c *gin.Context) {
 
 // AddTopic adds a new topic
 func AddTopic(c *gin.Context) {
-	_, err := strconv.Atoi(c.Param("categoryId"))
+	categoryID, err := strconv.Atoi(c.Param("categoryId"))
 	if err != nil {
 		invalidRequest(c, "Invalid Category ID")
 		return
 	}
-	// Add the Topic
+	category, err := db.GetCategory(categoryID)
+	if err != nil {
+		invalidRequest(c, "Category ID not found")
+	}
+
 	userID, err := strconv.Atoi(c.PostForm("userId"))
 	if err != nil {
 		invalidRequest(c, "Invalid User ID")
@@ -86,7 +90,8 @@ func AddTopic(c *gin.Context) {
 		return
 	}
 
-	err = db.AddTopic(topic)
+	// Add the Topic
+	err = db.AddTopic(*category, topic)
 	if err != nil {
 		serverError(c, err.Error())
 		return
