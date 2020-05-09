@@ -135,6 +135,32 @@ func AddTopic(c model.Category, t *model.Topic) error {
 	return err
 }
 
+// ListTopics lists all topics for the given category ID
+func ListTopics(id int) ([]model.Topic, error) {
+	rows, err := db.Query("SELECT id, title, author_id FROM topic WHERE category_id = ?")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	topics := make([]model.Topic, 0)
+	for rows.Next() {
+		var id int
+		var title string
+		var authorID int
+		err = rows.Scan(&id, &title, &authorID)
+		if err != nil {
+			return nil, err
+		}
+		author, err := GetUser(authorID)
+		if err != nil {
+			return nil, err
+		}
+		topic := model.Topic{ID: id, Title: title, Author: *author}
+		topics = append(topics, topic)
+	}
+	return topics, nil
+}
+
 // AddPost adds the given Post to the database
 func AddPost(topicID int, p model.Post) error {
 	err := exec("INSERT INTO post(topic_id, author_id, content) VALUES(?, ?, ?)", func(stmt *sql.Stmt) error {

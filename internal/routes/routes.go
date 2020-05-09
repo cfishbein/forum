@@ -114,6 +114,22 @@ func AddTopic(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{})
 }
 
+// ListTopics lists all Topics for a CategoryID
+func ListTopics(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("categoryId"))
+	if err != nil {
+		invalidRequest(c, "Invalid Category ID")
+	} else {
+		topics, err := db.ListTopics(id)
+		if err != nil {
+			serverError(c, err.Error())
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"topics": topics,
+		})
+	}
+}
+
 // GetPosts gets all posts for a topic ID in the path param
 func GetPosts(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
