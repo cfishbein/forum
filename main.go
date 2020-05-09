@@ -35,6 +35,9 @@ type configuration struct {
 }
 
 func loadConf() configuration {
+	if len(os.Args) != 2 {
+		log.Fatalln("Usage ./forum <config-file>")
+	}
 	// TODO conf should really be from an environment variable
 	file, err := os.Open(os.Args[1])
 	if err != nil {
