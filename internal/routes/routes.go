@@ -148,36 +148,48 @@ func GetPosts(c *gin.Context) {
 	})
 }
 
+type addPostReq struct {
+	topicID int
+	author  model.User
+	content string
+}
+
 // AddPost adds a post to the database
 func AddPost(c *gin.Context) {
-	topicID, err := strconv.Atoi(c.Param("postId"))
+	req, err := newAddPostReq(c)
 	if err != nil {
-		invalidRequest(c, "Invalid Topic ID")
-		return
-	}
-	userID, err := strconv.Atoi(c.PostForm("userId"))
-	if err != nil {
-		invalidRequest(c, "Invalid User ID")
-		return
-	}
-	content := c.PostForm("content")
-	author, err := db.GetUser(userID)
-	if err != nil {
-		invalidRequest(c, "User ID not found")
+		invalidRequest(c, err.Error())
 		return
 	}
 
 	// TODO FK's not being enforce in sqlite3, so topic ID isn't validated
-	post, err := model.NewPost(content, *author)
+	post, err := model.NewPost(req.content, req.author)
 	if err != nil {
 		invalidRequest(c, err.Error())
 	}
-	err = db.AddPost(topicID, *post)
+	err = db.AddPost(req.topicID, *post)
 	if err != nil {
 		serverError(c, err.Error())
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{})
+}
+
+func newAddPostReq(c *gin.Context) (*addPostReq, error) {
+	tID, err := strconv.Atoi(c.Param("postId"))
+	if err != nil {
+		return nil, err
+	}
+	uID, err := strconv.Atoi(c.PostForm("userId"))
+	if err != nil {
+		return nil, err
+	}
+	_content := c.PostForm("content")
+	_author, err := db.GetUser(uID)
+	if err != nil {
+		return nil, err
+	}
+	return &addPostReq{topicID: tID, author: *_author, content: _content}, nil
 }
 
 func invalidRequest(c *gin.Context, msg string) {
