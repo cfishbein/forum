@@ -70,6 +70,7 @@ func AddTopic(c *gin.Context) {
 	category, err := db.GetCategory(categoryID)
 	if err != nil {
 		invalidRequest(c, "Category ID not found")
+		return
 	}
 
 	userID, err := strconv.Atoi(c.PostForm("userId"))
