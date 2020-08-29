@@ -18,26 +18,26 @@ type Category struct {
 	Desc string `json:"desc"`
 }
 
-// Topic is a forum topic
-type Topic struct {
+// Thread is a forum thread
+type Thread struct {
 	ID     int    `json:"id"`
 	Title  string `json:"title"`
 	Author User   `json:"author"`
 	Posts  []Post `json:"posts"`
 }
 
-// NewTopic creates a new topic with the given title and user
-func NewTopic(title string, author User) (*Topic, error) {
+// NewThread creates a new thread with the given title and user
+func NewThread(title string, author User) (*Thread, error) {
 	if len(strings.TrimSpace(title)) < 1 {
 		return nil, errors.New("Title must not be empty")
 	}
-	t := &Topic{}
+	t := &Thread{}
 	t.Author = author
 	t.Title = title
 	return t, nil
 }
 
-// Post is a post within a topic
+// Post is a post within a Thread
 type Post struct {
 	ID      int    `json:"id"`
 	Author  User   `json:"author"`

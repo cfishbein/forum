@@ -13,7 +13,7 @@ CREATE TABLE category (
 INSERT INTO category (name, desc) VALUES("General", "Anything goes");
 INSERT INTO category (name, desc) VALUES("Support", "Ask questions here");
 
-CREATE TABLE topic (
+CREATE TABLE thread (
     id INTEGER PRIMARY KEY,
     title CHAR(30) NOT NULL,
     author_id INTEGER NOT NULL,
@@ -24,9 +24,9 @@ CREATE TABLE topic (
 
 CREATE TABLE post (
     id INTEGER PRIMARY KEY,
-    topic_id INTEGER NOT NULL,
+    thread_id INTEGER NOT NULL,
     author_id INTEGER NOT NULL,
     content TEXT NOT NULL,
-    FOREIGN KEY(topic_id) REFERENCES topic(id),
+    FOREIGN KEY(thread_id) REFERENCES thread(id),
     FOREIGN KEY(author_id) REFERENCES user(id)
 );

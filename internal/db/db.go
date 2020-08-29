@@ -121,9 +121,9 @@ func GetCategory(id int) (*model.Category, error) {
 	return category, nil
 }
 
-// AddTopic adds a new Topic, setting the topic ID of t
-func AddTopic(c model.Category, t *model.Topic) error {
-	err := exec("INSERT INTO topic(title, author_id, category_id) VALUES(?, ?, ?)", func(stmt *sql.Stmt) error {
+// AddThread adds a new Thread, setting the thread ID of t
+func AddThread(c model.Category, t *model.Thread) error {
+	err := exec("INSERT INTO thread(title, author_id, category_id) VALUES(?, ?, ?)", func(stmt *sql.Stmt) error {
 		result, e := stmt.Exec(t.Title, t.Author.ID, c.ID)
 		if e != nil {
 			return e
@@ -135,14 +135,14 @@ func AddTopic(c model.Category, t *model.Topic) error {
 	return err
 }
 
-// ListTopics lists all topics for the given category ID
-func ListTopics(id int) ([]model.Topic, error) {
-	rows, err := db.Query("SELECT id, title, author_id FROM topic WHERE category_id = ?")
+// ListThreads lists all threads for the given category ID
+func ListThreads(id int) ([]model.Thread, error) {
+	rows, err := db.Query("SELECT id, title, author_id FROM thread WHERE category_id = ?")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	topics := make([]model.Topic, 0)
+	threads := make([]model.Thread, 0)
 	for rows.Next() {
 		var id int
 		var title string
@@ -155,24 +155,24 @@ func ListTopics(id int) ([]model.Topic, error) {
 		if err != nil {
 			return nil, err
 		}
-		topic := model.Topic{ID: id, Title: title, Author: *author}
-		topics = append(topics, topic)
+		thread := model.Thread{ID: id, Title: title, Author: *author}
+		threads = append(threads, thread)
 	}
-	return topics, nil
+	return threads, nil
 }
 
 // AddPost adds the given Post to the database
-func AddPost(topicID int, p model.Post) error {
-	err := exec("INSERT INTO post(topic_id, author_id, content) VALUES(?, ?, ?)", func(stmt *sql.Stmt) error {
-		_, e := stmt.Exec(topicID, p.Author.ID, p.Content)
+func AddPost(threadID int, p model.Post) error {
+	err := exec("INSERT INTO post(thread_id, author_id, content) VALUES(?, ?, ?)", func(stmt *sql.Stmt) error {
+		_, e := stmt.Exec(threadID, p.Author.ID, p.Content)
 		return e
 	})
 	return err
 }
 
-// GetPosts get all posts for the given Topic ID
+// GetPosts get all posts for the given Thread ID
 func GetPosts(id int) ([]model.Post, error) {
-	rows, err := db.Query("SELECT p.id as id, a.id as author_id, a.name, p.content FROM post p, user a WHERE topic_id = ?", id)
+	rows, err := db.Query("SELECT p.id as id, a.id as author_id, a.name, p.content FROM post p, user a WHERE thread_id = ?", id)
 	if err != nil {
 		return nil, err
 	}

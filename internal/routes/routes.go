@@ -60,8 +60,8 @@ func ListUsers(c *gin.Context) {
 	}
 }
 
-// AddTopic adds a new topic
-func AddTopic(c *gin.Context) {
+// AddThread adds a new thread
+func AddThread(c *gin.Context) {
 	categoryID, err := strconv.Atoi(c.Param("categoryId"))
 	if err != nil {
 		invalidRequest(c, "Invalid Category ID")
@@ -85,14 +85,14 @@ func AddTopic(c *gin.Context) {
 	}
 
 	title := c.PostForm("title")
-	topic, err := model.NewTopic(title, *author)
+	thread, err := model.NewThread(title, *author)
 	if err != nil {
 		invalidRequest(c, err.Error())
 		return
 	}
 
-	// Add the Topic
-	err = db.AddTopic(*category, topic)
+	// Add the thread
+	err = db.AddThread(*category, thread)
 	if err != nil {
 		serverError(c, err.Error())
 		return
@@ -106,7 +106,7 @@ func AddTopic(c *gin.Context) {
 		return
 	}
 
-	err = db.AddPost(topic.ID, *post)
+	err = db.AddPost(thread.ID, *post)
 	if err != nil {
 		serverError(c, err.Error())
 		return
@@ -115,27 +115,27 @@ func AddTopic(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{})
 }
 
-// ListTopics lists all Topics for a CategoryID
-func ListTopics(c *gin.Context) {
+// ListThreads lists all Threads for a CategoryID
+func ListThreads(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("categoryId"))
 	if err != nil {
 		invalidRequest(c, "Invalid Category ID")
 	} else {
-		topics, err := db.ListTopics(id)
+		threads, err := db.ListThreads(id)
 		if err != nil {
 			serverError(c, err.Error())
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"topics": topics,
+			"threads": threads,
 		})
 	}
 }
 
-// GetPosts gets all posts for a topic ID in the path param
-func GetPosts(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("postId"))
+// ListPosts lists all posts for a thread ID in the path param
+func ListPosts(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("threadId"))
 	if err != nil {
-		invalidRequest(c, "Invalid Post ID")
+		invalidRequest(c, "Invalid Thread ID")
 		return
 	}
 	posts, err := db.GetPosts(id)
@@ -149,9 +149,9 @@ func GetPosts(c *gin.Context) {
 }
 
 type addPostReq struct {
-	topicID int
-	author  model.User
-	content string
+	threadID int
+	author   model.User
+	content  string
 }
 
 // AddPost adds a post to the database
@@ -162,12 +162,12 @@ func AddPost(c *gin.Context) {
 		return
 	}
 
-	// TODO FK's not being enforce in sqlite3, so topic ID isn't validated
+	// TODO FK's not being enforce in sqlite3, so thread ID isn't validated
 	post, err := model.NewPost(req.content, req.author)
 	if err != nil {
 		invalidRequest(c, err.Error())
 	}
-	err = db.AddPost(req.topicID, *post)
+	err = db.AddPost(req.threadID, *post)
 	if err != nil {
 		serverError(c, err.Error())
 		return
@@ -176,10 +176,11 @@ func AddPost(c *gin.Context) {
 }
 
 func newAddPostReq(c *gin.Context) (*addPostReq, error) {
-	tID, err := strconv.Atoi(c.Param("postId"))
+	tID, err := strconv.Atoi(c.Param("threadId"))
 	if err != nil {
 		return nil, err
 	}
+
 	uID, err := strconv.Atoi(c.PostForm("userId"))
 	if err != nil {
 		return nil, err
@@ -189,7 +190,7 @@ func newAddPostReq(c *gin.Context) (*addPostReq, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &addPostReq{topicID: tID, author: *_author, content: _content}, nil
+	return &addPostReq{threadID: tID, author: *_author, content: _content}, nil
 }
 
 func invalidRequest(c *gin.Context, msg string) {
