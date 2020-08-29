@@ -36,13 +36,9 @@ type configuration struct {
 }
 
 func loadConf() configuration {
-	if len(os.Args) != 2 {
-		log.Fatalln("Usage ./forum <config-file>")
-	}
-	// TODO conf should really be from an environment variable
-	file, err := os.Open(os.Args[1])
+	file, err := os.Open(os.Getenv("FORUM_CFG"))
 	if err != nil {
-		panic(err)
+		panic("Failed to open configuration file specified by FORUM_CFG env")
 	}
 	decoder := json.NewDecoder(file)
 	conf := configuration{}
